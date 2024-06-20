@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { UploadService } from '../../services/file-upload.service';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+
 
 
 
@@ -8,7 +10,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-file-upload',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule,],
   templateUrl: './file-upload.component.html',
   styleUrl: './file-upload.component.css',
 })
@@ -19,7 +21,7 @@ export class UploadComponent {
   errorMessage: string = '';
   isUploaded: boolean = false;
 
-  constructor(private uploadService: UploadService) { }
+  constructor(private uploadService: UploadService,private router: Router) { }
 
   onFileChange(event: any): void {
     const file = event.target.files?.[0];
@@ -44,5 +46,9 @@ export class UploadComponent {
       this.errorMessage = 'Failed to save to local storage!';
       console.error(error);
     }
+  }
+
+  navigateToPreview(): void {
+    this.router.navigate(['/preview']); // Navigate to /preview route
   }
 }
