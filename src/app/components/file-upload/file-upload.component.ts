@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
+import { UploadService } from '../../services/file-upload.service';
 import { CommonModule } from '@angular/common';
-import { HttpResponse } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { FileUploadService } from '../../services/file-upload.service';
+
+
+
 
 @Component({
   selector: 'app-file-upload',
@@ -11,44 +12,37 @@ import { FileUploadService } from '../../services/file-upload.service';
   templateUrl: './file-upload.component.html',
   styleUrl: './file-upload.component.css',
 })
-export class FileUploadComponent implements OnInit {
-  currentFile?: File;
-  message = '';
-  fileInfos?: Observable<any>;
 
-  constructor(private uploadService: FileUploadService) {}
+export class UploadComponent {
 
-  ngOnInit(): void {
-    this.fileInfos = this.uploadService.getFiles();
+  fileContent: string = '';
+  errorMessage: string = '';
+  isUploaded: boolean = false;
+
+  constructor(private uploadService: UploadService) { }
+
+  onFileChange(event: any): void {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.readAsText(file);
+      reader.onload = () => {
+        this.fileContent = reader.result as string;
+      };
+      reader.onerror = () => {
+        this.errorMessage = 'Failed to read file!';
+      };
+    }
   }
 
-  selectFile(event: any): void {
-    this.message = '';
-    this.currentFile = event.target.files.item(0);
-  }
-
-  upload(): void {
-    if (this.currentFile) {
-      this.uploadService.upload(this.currentFile).subscribe({
-        next: (event: any) => {
-          if (event instanceof HttpResponse) {
-            this.message = event.body.message;
-            this.fileInfos = this.uploadService.getFiles();
-          }
-        },
-        error: (err: any) => {
-          console.log(err);
-
-          if (err.error && err.error.message) {
-            this.message = err.error.message;
-          } else {
-            this.message = 'Could not upload the file!';
-          }
-        },
-        complete: () => {
-          this.currentFile = undefined;
-        },
-      });
+  uploadToLocalStorage(): void {
+    try {
+      this.uploadService.saveToLocalStorage(this.fileContent);
+      this.errorMessage = '';
+      this.isUploaded = true;
+    } catch (error) {
+      this.errorMessage = 'Failed to save to local storage!';
+      console.error(error);
     }
   }
 }
